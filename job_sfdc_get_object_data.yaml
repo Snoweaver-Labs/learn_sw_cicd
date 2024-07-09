@@ -1,0 +1,21 @@
+endpoint: https://{{_proj.sfdc_account}}.my.salesforce.com/services/data/v61.0/sobjects/{{_vars.object}}/{{_vars.id}}
+external_integration: sfdc_learn_dev_access_integration
+headers: |-
+  {
+        "Authorization":"Bearer {{_secrets.token}}"
+   }
+instance_type: function
+raise_for_status: true
+request_type: get
+response_format: json
+secrets:
+  - alias: token
+    secret: sfdc_learn_dev_oauth_access_token
+type: web_request
+variables:
+  - name: object
+    type: text
+    value: Account
+  - name: id
+    type: text
+    value: ''

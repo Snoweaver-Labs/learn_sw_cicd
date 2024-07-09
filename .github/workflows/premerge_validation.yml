@@ -1,0 +1,52 @@
+
+name: Premerge Validation
+
+on:
+  # Triggers the workflow when a pull request is openned or reopened for the "main" branch
+  pull_request:
+    branches: [ "develop" ]
+    types: [opened, reopened, synchronize]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+
+  deploy-to-learn-val:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      SNOWSQL_CONFIG: ${{ vars.SNOWSQL_CONFIG_VAL }}
+    secrets:
+      SNFLK_PRIVATE_KEY_PASSPHRASE: ${{ secrets.SNFLK_PRIVATE_KEY_PASSPHRASE_NON_PROD }}
+      SNFLK_PRIVATE_KEY:  ${{ secrets.SNFLK_PRIVATE_KEY_NON_PROD }}
+
+  premerge-testing: 
+    needs: deploy-to-learn-val
+    runs-on: ubuntu-latest
+
+    env:
+      SNOWSQL_PRIVATE_KEY_PASSPHRASE: ${{ secrets.SNFLK_PRIVATE_KEY_PASSPHRASE_NON_PROD }}
+
+    steps:
+
+      - name: Install SnowSQL
+        run: |
+          curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.3/linux_x86_64/snowsql-1.3.1-linux_x86_64.bash
+          SNOWSQL_DEST=~/.local/bin/ SNOWSQL_LOGIN_SHELL=~/.profile bash snowsql-1.3.1-linux_x86_64.bash
+          echo -e "${{ secrets.SNFLK_PRIVATE_KEY_NON_PROD }}" > ~/rsa_key.p8
+          echo -e "${{ vars.SNOWSQL_CONFIG_VAL }}" > ~/.snowsql/config
+
+      - name: Install Snoweaver CLI
+        run: |
+          curl -o ~/.local/bin/sw https://raw.githubusercontent.com/Snoweaver-Labs/quickstart/main/cli/sw
+          chmod 700 ~/.local/bin/sw
+
+      - name: test_job_sfdc_get_object_data
+        run: |
+          sw test job sfdc_get_object_data
+
+          label=`sw testcall sfdc_get_object_data | jq -r '.objectDescribe.label'`
+          if [[ $label != 'Account' ]] ; then
+            echo 'Error found when making a test call' >&2
+            exit 1
+          fi

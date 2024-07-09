@@ -1,0 +1,10 @@
+project_external_integration_mappings: []
+project_python: '3.11'
+project_secret_mappings: []
+project_variables:
+  - name: sfdc_account
+    type: text
+    value: snoweaver-dev-ed.develop
+  - name: test_var
+    type: text
+    value: test

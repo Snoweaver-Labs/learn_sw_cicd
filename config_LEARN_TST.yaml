@@ -1,0 +1,14 @@
+external_integration_mappings:
+  - source: sfdc_learn_dev_access_integration
+    target: sfdc_learn_test_access_integration
+python: '3.11'
+secret_mappings:
+  - source: sfdc_learn_dev_oauth_access_token
+    target: sfdc_learn_test_oauth_access_token
+variables:
+  - name: sfdc_account
+    type: text
+    value: snoweaver-dev-ed.develop
+  - name: test_var
+    type: text
+    value: test
